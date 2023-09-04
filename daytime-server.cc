@@ -50,15 +50,44 @@ int main(int argc, char ** argv)
   
   // Get the port from the arguments
   int port = atoi(argv[1]);
-  
+
+  printf("Port: %d\n", port);
+
   // Set the IP address and port for this server
-  struct sockaddr_in serverIPAddress; 
+  struct sockaddr_in serverIPAddress;
+
+  //struct sockaddr_in {
+  // short    sin_family;      //e.g. AF_INET
+  // unsigned short sin_port;  //e.g. htons(3490)
+  // struct   sin_addr;
+  // char     sin_zero[8];     //e.g. zero this if you want to
+  // };
+
+  //struct in_addr {
+  //   unsigned long s_addr;   // load with inet_aton() -
+  //                            converts the internet host address
+  //                            cp from IPv4 number and dots notation in binary form
+  // }
+
+  // whole block of memory to particular value
+  //resetting IP address byte to 0
   memset(&serverIPAddress, 0, sizeof(serverIPAddress));
+
+  //assigns to AF_INET family - to make the socket communicate with
   serverIPAddress.sin_family = AF_INET;
+
+  //binds a socket to any available network interface - indicating all available interfaces
   serverIPAddress.sin_addr.s_addr = INADDR_ANY;
+
+  //host to network short - convert 16 bit value from host's byte order to network byte order
+  //host endianness (can be either big endian or little endian)->
+  // network big endian (data is transmitted with the most significant byte and least significant byte last)
   serverIPAddress.sin_port = htons((u_short) port);
   
   // Allocate a socket
+  //socket( PF_INET (using protocol family PF_INET),
+  //        SOCK_STREAM (specifies the type of socket to create, creating stream socket,
+  //        reliable connection-oriented socket typically used with TCP for stream-oriented communication
   int masterSocket =  socket(PF_INET, SOCK_STREAM, 0);
   if (masterSocket < 0) {
     perror("socket");
@@ -93,7 +122,9 @@ int main(int argc, char ** argv)
     // Accept incoming connections
     struct sockaddr_in clientIPAddress;
     int alen = sizeof(clientIPAddress);
-    int slaveSocket = accept( masterSocket, (struct sockaddr *)&clientIPAddress,(socklen_t*)&alen);
+    //accepts a connection on a socket
+
+    int slaveSocket = accept(masterSocket, (struct sockaddr *)&clientIPAddress,(socklen_t*)&alen);
 
     if (slaveSocket < 0) {
       perror("accept");
@@ -109,8 +140,7 @@ int main(int argc, char ** argv)
   
 }
 
-void
-processTimeRequest(int fd)
+void processTimeRequest(int fd)
 {
   // Buffer used to store the name received from the client
   const int MaxName = 1024;
