@@ -40,28 +40,27 @@ int QueueLength = 5;
 // Processes time request
 void processTimeRequest( int socket );
 
-int
-main( int argc, char ** argv )
+int main(int argc, char ** argv)
 {
   // Print usage if not enough arguments
   if ( argc < 2 ) {
     fprintf( stderr, "%s", usage );
-    exit( -1 );
+    exit(-1);
   }
   
   // Get the port from the arguments
-  int port = atoi( argv[1] );
+  int port = atoi(argv[1]);
   
   // Set the IP address and port for this server
   struct sockaddr_in serverIPAddress; 
-  memset( &serverIPAddress, 0, sizeof(serverIPAddress) );
+  memset(&serverIPAddress, 0, sizeof(serverIPAddress));
   serverIPAddress.sin_family = AF_INET;
   serverIPAddress.sin_addr.s_addr = INADDR_ANY;
   serverIPAddress.sin_port = htons((u_short) port);
   
   // Allocate a socket
   int masterSocket =  socket(PF_INET, SOCK_STREAM, 0);
-  if ( masterSocket < 0) {
+  if (masterSocket < 0) {
     perror("socket");
     exit( -1 );
   }
@@ -73,57 +72,55 @@ main( int argc, char ** argv )
 		       (char *) &optval, sizeof( int ) );
    
   // Bind the socket to the IP address and port
-  int error = bind( masterSocket,
+  int error = bind(masterSocket,
 		    (struct sockaddr *)&serverIPAddress,
-		    sizeof(serverIPAddress) );
-  if ( error ) {
+		    sizeof(serverIPAddress));
+  if (error) {
     perror("bind");
-    exit( -1 );
+    exit(-1);
   }
   
   // Put socket in listening mode and set the 
   // size of the queue of unprocessed connections
   error = listen( masterSocket, QueueLength);
-  if ( error ) {
+  if (error) {
     perror("listen");
-    exit( -1 );
+    exit(-1);
   }
 
-  while ( 1 ) {
+  while (1) {
 
     // Accept incoming connections
     struct sockaddr_in clientIPAddress;
-    int alen = sizeof( clientIPAddress );
-    int slaveSocket = accept( masterSocket,
-			      (struct sockaddr *)&clientIPAddress,
-			      (socklen_t*)&alen);
+    int alen = sizeof(clientIPAddress);
+    int slaveSocket = accept( masterSocket, (struct sockaddr *)&clientIPAddress,(socklen_t*)&alen);
 
-    if ( slaveSocket < 0 ) {
-      perror( "accept" );
-      exit( -1 );
+    if (slaveSocket < 0) {
+      perror("accept");
+      exit(-1);
     }
 
     // Process request.
-    processTimeRequest( slaveSocket );
+    processTimeRequest(slaveSocket);
 
     // Close socket
-    close( slaveSocket );
+    close(slaveSocket);
   }
   
 }
 
 void
-processTimeRequest( int fd )
+processTimeRequest(int fd)
 {
   // Buffer used to store the name received from the client
   const int MaxName = 1024;
-  char name[ MaxName + 1 ];
+  char name[MaxName + 1];
   int nameLength = 0;
   int n;
 
   // Send prompt
   const char * prompt = "\nType your name:";
-  write( fd, prompt, strlen( prompt ) );
+  write(fd, prompt, strlen(prompt));
 
   // Currently character read
   unsigned char newChar;
@@ -137,25 +134,24 @@ processTimeRequest( int fd )
   // <CR><LF> is found.
   //
     
-  while ( nameLength < MaxName &&
-	  ( n = read( fd, &newChar, sizeof(newChar) ) ) > 0 ) {
+  while (nameLength < MaxName && (n = read(fd, &newChar, sizeof(newChar))) > 0) {
 
-    if ( lastChar == '\015' && newChar == '\012' ) {
+    if (lastChar == '\015' && newChar == '\012') {
       // Discard previous <CR> from name
       nameLength--;
       break;
     }
 
-    name[ nameLength ] = newChar;
+    name[nameLength] = newChar;
     nameLength++;
 
     lastChar = newChar;
   }
 
   // Add null character at the end of the string
-  name[ nameLength ] = 0;
+  name[nameLength] = 0;
 
-  printf( "name=%s\n", name );
+  printf("name=%s\n", name);
 
   // Get time of day
   time_t now;
@@ -165,9 +161,9 @@ processTimeRequest( int fd )
   // Send name and greetings
   const char * hi = "\nHi ";
   const char * timeIs = " the time is:\n";
-  write( fd, hi, strlen( hi ) );
-  write( fd, name, strlen( name ) );
-  write( fd, timeIs, strlen( timeIs ) );
+  write(fd, hi, strlen(hi));
+  write(fd, name, strlen(name));
+  write(fd, timeIs, strlen(timeIs));
   
   // Send the time of day 
   write(fd, timeString, strlen(timeString));
@@ -175,5 +171,4 @@ processTimeRequest( int fd )
   // Send last newline
   const char * newline="\n";
   write(fd, newline, strlen(newline));
-  
 }
